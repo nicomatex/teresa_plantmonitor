@@ -3,3 +3,4 @@ uvicorn[standard]
 python-dotenv
 pydantic
 pymongo[srv]
+strawberry-graphql[fastapi]

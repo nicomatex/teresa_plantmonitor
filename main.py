@@ -1,20 +1,46 @@
-from typing import Optional
 from fastapi import FastAPI
-from pydantic import BaseSettings
-from pymongo import MongoClient
 import pprint
+from startup import settings, users
+from strawberry.fastapi import GraphQLRouter
+import strawberry
 
 
-class Settings(BaseSettings):
-    MONGODB_URI: str
+@strawberry.type
+class User:
+    id: int
+
+    def __init__(self, id):
+        self.id = id
+
+    @strawberry.field
+    def age(self) -> int:
+        return 10
+
+    @strawberry.field
+    def name(self) -> str:
+        return "Nico"
+
+    @strawberry.field
+    def id(self) -> int:
+        return self.id
 
 
-settings = Settings(_env_file='.env')
+@strawberry.type
+class Query:
+    @strawberry.field
+    def hello(self) -> str:
+        return "Hello World"
+
+    @strawberry.field
+    def user(self, id: strawberry.ID) -> User:
+        return User(id)
+
+
+schema = strawberry.Schema(Query)
+graphql_app = GraphQLRouter(schema)
+
 app = FastAPI()
-
-mongo_client = MongoClient(settings.MONGODB_URI)
-db = mongo_client.prod_db
-users = db.users
+app.include_router(graphql_app, prefix="/graphql")
 
 
 @app.get("/")
