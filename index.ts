@@ -9,6 +9,7 @@ dotenv.config({ path: __dirname + '/.env' });
 import { databaseCheckMiddleware } from './src/middlewares/databaseCheckMiddleware';
 
 //Routes
+import usersRoutes from './src/routes/usersRoutes';
 
 const DB_URI = process.env.MONGODB_URI;
 
@@ -24,6 +25,9 @@ const app = express();
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(databaseCheckMiddleware);
+
+// Register routes
+usersRoutes(app);
 
 const port = process.env.PORT || 3000;
 
