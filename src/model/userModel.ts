@@ -4,7 +4,7 @@ type Plant = {
     _id: string;
     name: string;
     description: string;
-    created_date: Date;
+    created_date?: Date;
 };
 
 type User = {
