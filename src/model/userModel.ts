@@ -1,10 +1,18 @@
 import { Schema } from 'mongoose';
 
+type Measurement = {
+    _id: string;
+    humidity: number;
+    temperature: number;
+    received_date?: Date;
+};
+
 type Plant = {
     _id: string;
     name: string;
     description: string;
-    created_date: Date;
+    measurements?: Measurement[];
+    created_date?: Date;
 };
 
 type User = {
@@ -14,6 +22,25 @@ type User = {
     plants: Plant[];
     created_date: Date;
 };
+
+const MeasurementSchema = new Schema<Measurement>({
+    _id: {
+        type: String,
+        required: [true, 'User id is required'],
+    },
+    humidity: {
+        type: Number,
+        required: [true, 'Humidity is required'],
+    },
+    temperature: {
+        type: Number,
+        required: [true, 'Temperature is required'],
+    },
+    received_date: {
+        type: Date,
+        default: () => new Date(),
+    },
+});
 
 const PlantSchema = new Schema<Plant>({
     _id: {
@@ -27,6 +54,10 @@ const PlantSchema = new Schema<Plant>({
     description: {
         type: String,
         required: [true, 'User id is required'],
+    },
+    measurements: {
+        type: [MeasurementSchema],
+        default: () => [],
     },
     created_date: {
         type: Date,

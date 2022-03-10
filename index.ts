@@ -10,6 +10,7 @@ import { databaseCheckMiddleware } from './src/middlewares/databaseCheckMiddlewa
 
 //Routes
 import usersRoutes from './src/routes/usersRoutes';
+import plantsRoutes from './src/routes/plantsRoutes';
 
 const DB_URI = process.env.MONGODB_URI;
 
@@ -28,11 +29,12 @@ app.use(databaseCheckMiddleware);
 
 // Register routes
 usersRoutes(app);
+plantsRoutes(app);
 
 const port = process.env.PORT || 3000;
 
-app.get('/', (req, res) => {
-    res.send('Hello World!');
+app.get('/health', (req, res) => {
+    res.send(`Service online. Environment: ${process.env.NODE_ENV}`);
 });
 
 app.listen(port, () => {
