@@ -33,8 +33,8 @@ plantsRoutes(app);
 
 const port = process.env.PORT || 3000;
 
-app.get('/', (req, res) => {
-    res.send('Hello World!');
+app.get('/health', (req, res) => {
+    res.send(`Service online. Environment: ${process.env.NODE_ENV}`);
 });
 
 app.listen(port, () => {

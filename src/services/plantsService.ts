@@ -42,3 +42,39 @@ export const listMyPlants: RequestHandler = async (req, res) => {
 
     res.status(200).json(user.plants);
 };
+
+// export const logMeasurement: RequestHandler = async (req, res) => {
+//     if (!req.body.humidity || !req.body.temperature) {
+//         res.status(400).json({
+//             error: 'Humidity and temperature are required',
+//         });
+//     }
+//     const measurement = {
+//         _id: uuidv4(),
+//         humidity: req.body.humidity,
+//         temperature: req.body.temperature,
+//     };
+
+//     const user = await User.findOne({ _id: res.locals.userId });
+
+//     if (user == null) {
+//         logger.error(`User ${res.locals.userId} not found`);
+//         return res.sendStatus(500);
+//     }
+
+//     const plant = user.plants.find((p) => p._id === req.params.id);
+
+//     if (plant == null) {
+//         logger.error(`Plant ${req.params.id} not found`);
+//         return res.sendStatus(500);
+//     }
+
+//     plant.measurements.push(measurement);
+
+//     try {
+//         await user.save();
+//         res.sendStatus(200);
+//     } catch (error) {
+//         logger.warn(`Error saving measurement: ${error}`);
+//     }
+// };
