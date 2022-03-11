@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    /* Basic options */
+    "target": "esnext",
+    "module": "commonjs",
+    "allowJs": true,
+    "noEmit": false,
+    "isolatedModules": true,
+    "jsx": "react",
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    
+    /* Strict type-checking Options */
+    "strict": true,
+
+    /* Module resolution options */
+    "moduleResolution": "node",
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+  },
+  "include": ["src"],
+  "exclude": ["node_modules"]
+}

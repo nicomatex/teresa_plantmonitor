@@ -16,10 +16,14 @@ const DB_URI = process.env.MONGODB_URI;
 
 mongoose.Promise = global.Promise;
 
-mongoose
-    .connect(DB_URI ?? 'mongodb://localhost/test')
-    .then(() => logger.info('Successfully connected to database.'))
-    .catch((error) => logger.error(`Error connecting to database: ${error}`));
+if (process.env.NODE_ENV !== 'test') {
+    mongoose
+        .connect(DB_URI ?? 'mongodb://localhost/test')
+        .then(() => logger.info('Successfully connected to database.'))
+        .catch((error) =>
+            logger.error(`Error connecting to database: ${error}`)
+        );
+}
 
 const app = express();
 
@@ -37,6 +41,10 @@ app.get('/health', (req, res) => {
     res.send(`Service online. Environment: ${process.env.NODE_ENV}`);
 });
 
-app.listen(port, () => {
-    logger.info(`Server listening on port ${port}`);
-});
+if (process.env.NODE_ENV !== 'test') {
+    app.listen(port, () => {
+        logger.info(`Server listening on port ${port}`);
+    });
+}
+
+export { app };

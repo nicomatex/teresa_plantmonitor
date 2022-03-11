@@ -32,11 +32,9 @@ export const addNewUser: RequestHandler = async (req, res) => {
     } catch (error) {
         if (error instanceof MongoServerError) {
             if (error.code === 11000) {
-                return res
-                    .status(400)
-                    .json({
-                        error: 'An account with that email already exists',
-                    });
+                return res.status(409).json({
+                    error: 'An account with that email already exists',
+                });
             }
         }
         logger.warn(`Error creating user: ${error}`);
