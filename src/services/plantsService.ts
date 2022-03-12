@@ -8,7 +8,9 @@ const User = model('User', UserSchema);
 
 export const addNewPlant: RequestHandler = async (req, res) => {
     if (!req.body.name || !req.body.description) {
-        res.status(400).json({ error: 'Name and description are required' });
+        return res
+            .status(400)
+            .json({ error: 'Name and description are required' });
     }
     const new_plant = {
         _id: uuidv4(),
@@ -42,6 +44,32 @@ export const listMyPlants: RequestHandler = async (req, res) => {
 
     res.status(200).json(user.plants);
 };
+
+// export const genMeasurementToken: RequestHandler = async (req, res) => {
+//     if (!req.body.plantId) {
+//         return res.status(400).json({ error: 'Plant ID is required' });
+//     }
+
+//     const user = await User.findOne({ _id: res.locals.userId }, { plants: 1 });
+
+//     if (user == null) {
+//         logger.error(`User ${res.locals.userId} not found`);
+//         return res.sendStatus(500);
+//     }
+
+//     const plant = user.plants.find((p) => p._id === req.body.plantId);
+//     if (plant == null) {
+//         return res.status(404).json({ error: 'Plant not found' });
+//     }
+
+//     const token = jwt.sign(
+//         { userId: user._id, plantId: plant._id, tokenType: TokenType.Plant },
+//         process.env.JWT_SECRET || 'secret',
+//         { expiresIn: process.env.TOKEN_EXPIRATION || '2h' }
+//     );
+
+//     return res.json({ measurementToken: token });
+// };
 
 // export const logMeasurement: RequestHandler = async (req, res) => {
 //     if (!req.body.humidity || !req.body.temperature) {

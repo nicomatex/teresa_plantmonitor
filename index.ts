@@ -11,6 +11,7 @@ import { databaseCheckMiddleware } from './src/middlewares/databaseCheckMiddlewa
 //Routes
 import usersRoutes from './src/routes/usersRoutes';
 import plantsRoutes from './src/routes/plantsRoutes';
+import devicesRoutes from './src/routes/deviceRoutes';
 
 const DB_URI = process.env.MONGODB_URI;
 
@@ -34,6 +35,7 @@ app.use(databaseCheckMiddleware);
 // Register routes
 usersRoutes(app);
 plantsRoutes(app);
+devicesRoutes(app);
 
 const port = process.env.PORT || 3000;
 

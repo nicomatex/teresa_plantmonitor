@@ -2,7 +2,7 @@ import { RequestHandler } from 'express';
 import jwt from 'jsonwebtoken';
 import TokenType from '../security/tokenTypes';
 
-export const authorizationMiddleware: RequestHandler = async (
+export const measurementAuthorizationMiddleware: RequestHandler = async (
     req,
     res,
     next
@@ -21,12 +21,13 @@ export const authorizationMiddleware: RequestHandler = async (
         const tokenPayload = jwt.verify(
             token,
             process.env.JWT_SECRET || 'secret'
-        ) as { userId: string; tokenType: TokenType };
+        ) as { userId: string; plantId: string; tokenType: TokenType };
 
-        if (tokenPayload.tokenType !== TokenType.Session) {
+        if (tokenPayload.tokenType !== TokenType.Plant) {
             res.status(401).json({ error: 'Invalid token type.' });
         }
         res.locals.userId = tokenPayload.userId;
+        res.locals.plantId = tokenPayload.plantId;
 
         next();
     } catch (e) {

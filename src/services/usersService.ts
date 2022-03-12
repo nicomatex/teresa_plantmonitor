@@ -6,6 +6,7 @@ import bcrypt from 'bcrypt';
 import logger from '../logger';
 import jwt from 'jsonwebtoken';
 import { MongoServerError } from 'mongodb';
+import TokenType from '../security/tokenTypes';
 
 const User = model('User', UserSchema);
 
@@ -61,7 +62,7 @@ export const createSession: RequestHandler = async (req, res) => {
     }
 
     const token = jwt.sign(
-        { userId: user._id },
+        { userId: user._id, tokenType: TokenType.Session },
         process.env.JWT_SECRET || 'secret',
         { expiresIn: process.env.TOKEN_EXPIRATION || '2h' }
     );
