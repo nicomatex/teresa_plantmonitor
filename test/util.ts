@@ -10,6 +10,21 @@ const testUserData = {
     password: '1234',
 };
 
+const testPlantData = {
+    name: 'Teresa',
+    description: 'A beautiful flower',
+};
+
+type TestUser = {
+    authToken: string;
+    email: string;
+    password: string;
+};
+
+type TestPlant = {
+    id: string;
+};
+
 export const connect = async () => {
     const uri = (await mongod).getUri();
     await mongoose.connect(uri);
@@ -31,7 +46,7 @@ export const clearDatabase = async () => {
 
 export const createTestUserAndAuthenticate = async (
     app: Express
-): Promise<{ authToken: string; email: string; password: string }> => {
+): Promise<TestUser> => {
     await supertest(app).post('/users').send(testUserData);
 
     const session = await supertest(app)
