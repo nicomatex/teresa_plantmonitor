@@ -27,7 +27,10 @@ describe('Account CRUD Operations', () => {
         process.env.JWT_SECRET = 'TEST_SECRET';
         process.env.TOKEN_EXPIRATION = '2h';
         process.env.BCRYPT_SALT_ROUNDS = '8';
-
+        process.env.BINDING_JWT_SECRET = 'TERESITA';
+        process.env.BINDING_TOKEN_EXPIRATION = '2h';
+        process.env.MEASUREMENT_JWT_SECRET = 'TERESARDIUM';
+        process.env.MEASUREMENT_TOKEN_EXPIRATION = '1y';
         await connect();
     });
 
