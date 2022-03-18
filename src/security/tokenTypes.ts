@@ -1,7 +1,11 @@
-enum TokenType {
+export enum TokenType {
     Session,
     Plant,
     Binding,
+    Measurement,
 }
 
-export default TokenType;
+export type BindingTokenPayload = {
+    bindingCode: number;
+    tokenType: TokenType;
+};

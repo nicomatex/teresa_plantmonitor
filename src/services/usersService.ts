@@ -6,7 +6,7 @@ import bcrypt from 'bcrypt';
 import logger from '../logger';
 import jwt from 'jsonwebtoken';
 import { MongoServerError } from 'mongodb';
-import TokenType from '../security/tokenTypes';
+import { TokenType } from '../security/tokenTypes';
 
 const User = model('User', UserSchema);
 

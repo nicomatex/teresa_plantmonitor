@@ -106,4 +106,56 @@ describe('Account CRUD Operations', () => {
 
         expect(bindingRes.status).toEqual(404);
     });
+
+    it('04 - Device can retrieve measurement token after binding', async () => {
+        const testUser = await createTestUserAndAuthenticate(app);
+        await supertest(app)
+            .post('/plants')
+            .set('Authorization', `Bearer ${testUser.authToken}`)
+            .send(testPlant);
+
+        const res = await supertest(app).post('/devices').send();
+
+        const bindingCode = res.body.bindingCode;
+        const bindingToken = res.body.bindingToken;
+        const user = await User.findOne({ email: testUser.email });
+        if (user == null) {
+            throw new Error('Test user not found');
+        }
+
+        const plant = user.plants[0];
+
+        await supertest(app)
+            .post('/binding')
+            .set('Authorization', `Bearer ${testUser.authToken}`)
+            .send({ bindingCode: bindingCode, plantId: plant._id });
+
+        // At this point, the device should be successfully paired, and the measurement post token can be retreived
+
+        const measurementTokenRes = await supertest(app)
+            .post('/measurementValidation')
+            .send({ bindingToken: bindingToken });
+
+        expect(measurementTokenRes.status).toEqual(200);
+        expect(measurementTokenRes.body.measurementToken).toBeDefined();
+    });
+
+    it('05 - Device cannot retrieve measurement token before being bound', async () => {
+        const testUser = await createTestUserAndAuthenticate(app);
+        await supertest(app)
+            .post('/plants')
+            .set('Authorization', `Bearer ${testUser.authToken}`)
+            .send(testPlant);
+
+        const res = await supertest(app).post('/devices').send();
+
+        const bindingToken = res.body.bindingToken;
+
+        const measurementTokenRes = await supertest(app)
+            .post('/measurementValidation')
+            .send({ bindingToken: bindingToken });
+
+        expect(measurementTokenRes.status).toEqual(403);
+        expect(measurementTokenRes.body.measurementToken).toBeUndefined();
+    });
 });

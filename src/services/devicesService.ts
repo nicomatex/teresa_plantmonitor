@@ -5,7 +5,7 @@ import logger from '../logger';
 import { DeviceSchema } from '../model/deviceModel';
 import { getBindingCode } from '../util';
 import jwt from 'jsonwebtoken';
-import TokenType from '../security/tokenTypes';
+import { BindingTokenPayload, TokenType } from '../security/tokenTypes';
 import { UserSchema } from '../model/userModel';
 
 const Device = model('Device', DeviceSchema);
@@ -27,8 +27,8 @@ export const registerDevice: RequestHandler = async (req, res) => {
 
     const token = jwt.sign(
         { bindingCode: bindingCode, tokenType: TokenType.Binding },
-        process.env.JWT_SECRET || 'secret',
-        { expiresIn: process.env.TOKEN_EXPIRATION || '2h' }
+        process.env.BINDING_JWT_SECRET || 'secret',
+        { expiresIn: process.env.BINDING_TOKEN_EXPIRATION || '2h' }
     );
     res.json({ bindingCode: bindingCode, bindingToken: token });
 };
@@ -69,4 +69,56 @@ export const bindDeviceToPlant: RequestHandler = async (req, res) => {
     device.isBound = true;
     await device.save();
     res.sendStatus(200);
+};
+
+export const genMeasurementPublishCode: RequestHandler = async (req, res) => {
+    if (!req.body.bindingToken) {
+        return res.status(400).json({ error: 'Binding token is required' });
+    }
+
+    const { bindingToken } = req.body as { bindingToken: string };
+
+    try {
+        const decoded = jwt.verify(
+            bindingToken,
+            process.env.BINDING_JWT_SECRET || 'secret'
+        ) as BindingTokenPayload;
+
+        if (decoded.tokenType !== TokenType.Binding) {
+            return res
+                .status(400)
+                .json({ error: 'Binding token is not valid.' });
+        }
+
+        const device = await Device.findOne({
+            bindingCode: decoded.bindingCode,
+        });
+
+        if (device == null) {
+            logger.error(
+                `Device with binding code ${decoded.bindingCode} included in token not found`
+            );
+            return res.status(500).json({ error: 'Something went wrong.' });
+        }
+
+        if (!device.isBound) {
+            return res
+                .status(403)
+                .json({ error: 'Device is not bound to a plant.' });
+        }
+
+        const token = jwt.sign(
+            {
+                userId: device.boundUserId,
+                plantId: device.boundPlantId,
+                tokenType: TokenType.Measurement,
+            },
+            process.env.MEASUREMENT_JWT_SECRET || 'secret',
+            { expiresIn: process.env.MEASUREMENT_TOKEN_EXPIRATION || '2h' }
+        );
+
+        res.json({ measurementToken: token });
+    } catch (e) {
+        return res.status(401).json({ error: 'Invalid binding token' });
+    }
 };

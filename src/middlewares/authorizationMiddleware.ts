@@ -1,6 +1,6 @@
 import { RequestHandler } from 'express';
 import jwt from 'jsonwebtoken';
-import TokenType from '../security/tokenTypes';
+import { TokenType } from '../security/tokenTypes';
 
 export const authorizationMiddleware: RequestHandler = async (
     req,
