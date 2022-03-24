@@ -7,9 +7,9 @@ import {
 } from '../util';
 import supertest from 'supertest';
 import { model } from 'mongoose';
-import { UserSchema } from '../../src/model/userModel';
+import { PlantSchema } from '../../src/model/plantModel';
 
-const User = model('User', UserSchema);
+const Plant = model('Plant', PlantSchema);
 
 const testPlant = {
     name: 'Teresa',
@@ -51,13 +51,13 @@ describe('Account CRUD Operations', () => {
             .send(testPlant);
         expect(res.status).toEqual(200);
 
-        const user = await User.findOne({ email: testUser.email });
-        if (user == null) {
-            throw new Error('Test user not found');
-        }
-        expect(user.plants.length).toEqual(1);
-        const plant = user.plants[0];
+        expect(await Plant.count()).toEqual(1);
 
+        const plant = await Plant.findOne();
+        if (plant == null) {
+            throw new Error('Test plant not found');
+        }
+        expect(plant).toBeDefined();
         expect(plant.name).toEqual(testPlant.name);
         expect(plant.description).toEqual(testPlant.description);
     });
@@ -77,28 +77,6 @@ describe('Account CRUD Operations', () => {
 
         expect(res2.status).toEqual(200);
 
-        const user = await User.findOne({ email: testUser.email });
-        if (user == null) {
-            throw new Error('Test user not found');
-        }
-        expect(user.plants.length).toEqual(2);
-        const plant = user.plants[0];
-
-        expect(
-            user.plants.filter(
-                (plant) =>
-                    plant.name === testPlant.name &&
-                    plant.description === testPlant.description
-            )
-        ).toHaveLength(1);
-
-        expect(
-            user.plants.filter(
-                (plant) =>
-                    plant.name === anotherTestPlant.name &&
-                    plant.description === anotherTestPlant.description
-            )
-        ).toHaveLength(1);
-        expect(plant.description).toEqual(testPlant.description);
+        expect(await Plant.count()).toEqual(2);
     });
 });

@@ -1,17 +1,16 @@
 import { Schema } from 'mongoose';
 
 type Device = {
-    _id: string;
+    _id: Schema.Types.ObjectId;
     bindingCode: number;
     isBound: boolean;
-    boundUserId: string;
-    boundPlantId: string;
+    boundPlantId: Schema.Types.ObjectId;
     registeredDate?: Date;
 };
 
 export const DeviceSchema = new Schema<Device>({
     _id: {
-        type: String,
+        type: Schema.Types.ObjectId,
         required: [true, 'Device id is required'],
     },
     bindingCode: {
@@ -24,12 +23,9 @@ export const DeviceSchema = new Schema<Device>({
         required: true,
         default: false,
     },
-    boundUserId: {
-        type: String,
-        required: false,
-    },
     boundPlantId: {
-        type: String,
+        type: Schema.Types.ObjectId,
+        ref: 'Plant',
         required: false,
     },
     registeredDate: {

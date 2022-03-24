@@ -11,7 +11,7 @@ export type BindingTokenPayload = {
 };
 
 export type MeasurementTokenPayload = {
-    userId: string;
+    deviceId: string;
     plantId: string;
     tokenType: TokenType;
 };

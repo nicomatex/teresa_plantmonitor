@@ -1,12 +1,12 @@
 import { RequestHandler } from 'express';
 import { model } from 'mongoose';
 import { UserSchema } from '../model/userModel';
-import { v4 as uuidv4 } from 'uuid';
 import bcrypt from 'bcrypt';
 import logger from '../logger';
 import jwt from 'jsonwebtoken';
 import { MongoServerError } from 'mongodb';
 import { TokenType } from '../security/tokenTypes';
+import mongoose from 'mongoose';
 
 const User = model('User', UserSchema);
 
@@ -25,7 +25,7 @@ export const addNewUser: RequestHandler = async (req, res) => {
             salt_rounds
         );
         const newUser = new User({
-            _id: uuidv4(),
+            _id: new mongoose.Types.ObjectId(),
             email: req.body.email,
             password: hashedPassword,
         });
