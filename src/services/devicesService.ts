@@ -122,3 +122,32 @@ export const genMeasurementPublishCode: RequestHandler = async (req, res) => {
         return res.status(401).json({ error: 'Invalid binding token' });
     }
 };
+
+export const addMeasurement: RequestHandler = async (req, res) => {
+    const userId = res.locals.userId;
+    const plantId = res.locals.plantId;
+    const user = await User.findOne({ _id: userId }, { plants: 1 });
+
+    if (user == null) {
+        logger.error(`User ${userId} not found`);
+        return res.status(500).json({ error: 'Something went wrong.' });
+    }
+
+    const plant = user.plants.find((p) => p._id === plantId);
+
+    if (plant == null) {
+        logger.error(`Plant ${plantId} not found`);
+        return res.status(500).json({ error: 'Something went wrong.' });
+    }
+
+    const measurement = {
+        _id: uuidv4(),
+        humidity: req.body.humidity,
+        temperature: req.body.temperature,
+    };
+
+    plant.measurements?.push(measurement);
+    user.save();
+
+    res.sendStatus(200);
+};

@@ -24,7 +24,7 @@ export const addNewPlant: RequestHandler = async (req, res) => {
         return res.sendStatus(500);
     }
 
-    user.plants.push(new_plant);
+    user.plants?.push(new_plant);
 
     try {
         await user.save();

@@ -161,4 +161,44 @@ describe('Account CRUD Operations', () => {
         expect(measurementTokenRes.status).toEqual(403);
         expect(measurementTokenRes.body.measurementToken).toBeUndefined();
     });
+
+    it('06 - Device can log measurement with valid measurement token', async () => {
+        const testUser = await createTestUserAndAuthenticate(app);
+        await supertest(app)
+            .post('/plants')
+            .set('Authorization', `Bearer ${testUser.authToken}`)
+            .send(testPlant);
+
+        const res = await supertest(app).post('/devices').send();
+
+        const bindingCode = res.body.bindingCode;
+        const bindingToken = res.body.bindingToken;
+        const user = await User.findOne({ email: testUser.email });
+        if (user == null) {
+            throw new Error('Test user not found');
+        }
+
+        const plant = user.plants[0];
+
+        await supertest(app)
+            .post('/binding')
+            .set('Authorization', `Bearer ${testUser.authToken}`)
+            .send({ bindingCode: bindingCode, plantId: plant._id });
+
+        // At this point, the device should be successfully paired, and the measurement post token can be retreived
+
+        const measurementTokenRes = await supertest(app)
+            .post('/measurementValidation')
+            .send({ bindingToken: bindingToken });
+
+        const measurementPostRes = await supertest(app)
+            .post('/measurement')
+            .set(
+                'Authorization',
+                `Bearer ${measurementTokenRes.body.measurementToken}`
+            )
+            .send({ humidity: 30, temperature: 23 });
+
+        expect(measurementPostRes.status).toEqual(200);
+    });
 });
