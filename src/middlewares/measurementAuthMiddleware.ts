@@ -26,7 +26,7 @@ export const measurementAuthMiddleware: RequestHandler = async (
         if (tokenPayload.tokenType !== TokenType.Measurement) {
             res.status(401).json({ error: 'Invalid token type.' });
         }
-        res.locals.userId = tokenPayload.userId;
+        res.locals.deviceId = tokenPayload.deviceId;
         res.locals.plantId = tokenPayload.plantId;
 
         next();

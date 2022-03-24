@@ -8,10 +8,10 @@ import {
 import supertest from 'supertest';
 import { model } from 'mongoose';
 import { DeviceSchema } from '../../src/model/deviceModel';
-import { UserSchema } from '../../src/model/userModel';
+import { PlantSchema } from '../../src/model/plantModel';
 
 const Device = model('Device', DeviceSchema);
-const User = model('User', UserSchema);
+const Plant = model('Plant', PlantSchema);
 
 const testPlant = {
     name: 'Teresa',
@@ -62,12 +62,11 @@ describe('Account CRUD Operations', () => {
         const res = await supertest(app).post('/devices').send();
 
         const bindingCode = res.body.bindingCode;
-        const user = await User.findOne({ email: testUser.email });
-        if (user == null) {
-            throw new Error('Test user not found');
-        }
 
-        const plant = user.plants[0];
+        const plant = await Plant.findOne({ name: testPlant.name });
+        if (plant == null) {
+            throw new Error('Test plant not found');
+        }
 
         const bindingRes = await supertest(app)
             .post('/binding')
@@ -84,7 +83,6 @@ describe('Account CRUD Operations', () => {
 
         expect(device.isBound).toBe(true);
         expect(device.boundPlantId).toEqual(plant._id);
-        expect(device.boundUserId).toEqual(user._id);
     });
 
     it('03 - Wrong binding code cannot be used to bind', async () => {
@@ -95,12 +93,10 @@ describe('Account CRUD Operations', () => {
             .set('Authorization', `Bearer ${testUser.authToken}`)
             .send(testPlant);
 
-        const user = await User.findOne({ email: testUser.email });
-        if (user == null) {
-            throw new Error('Test user not found');
+        const plant = await Plant.findOne();
+        if (plant == null) {
+            throw new Error('Test plant not found');
         }
-
-        const plant = user.plants[0];
 
         const bindingRes = await supertest(app)
             .post('/binding')
@@ -121,13 +117,11 @@ describe('Account CRUD Operations', () => {
 
         const bindingCode = res.body.bindingCode;
         const bindingToken = res.body.bindingToken;
-        const user = await User.findOne({ email: testUser.email });
-        if (user == null) {
-            throw new Error('Test user not found');
+
+        const plant = await Plant.findOne();
+        if (plant == null) {
+            throw new Error('Test plant not found');
         }
-
-        const plant = user.plants[0];
-
         await supertest(app)
             .post('/binding')
             .set('Authorization', `Bearer ${testUser.authToken}`)
@@ -173,13 +167,11 @@ describe('Account CRUD Operations', () => {
 
         const bindingCode = res.body.bindingCode;
         const bindingToken = res.body.bindingToken;
-        const user = await User.findOne({ email: testUser.email });
-        if (user == null) {
-            throw new Error('Test user not found');
+
+        const plant = await Plant.findOne();
+        if (plant == null) {
+            throw new Error('Test plant not found');
         }
-
-        const plant = user.plants[0];
-
         await supertest(app)
             .post('/binding')
             .set('Authorization', `Bearer ${testUser.authToken}`)

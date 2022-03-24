@@ -1,20 +1,22 @@
 import { RequestHandler } from 'express';
 import { model } from 'mongoose';
-import { v4 as uuidv4 } from 'uuid';
 import logger from '../logger';
 import { DeviceSchema } from '../model/deviceModel';
 import { getBindingCode } from '../util';
 import jwt from 'jsonwebtoken';
 import { BindingTokenPayload, TokenType } from '../security/tokenTypes';
-import { UserSchema } from '../model/userModel';
+import mongoose from 'mongoose';
+import { PlantSchema } from '../model/plantModel';
+import { MeasurementSchema } from '../model/measurementModel';
 
 const Device = model('Device', DeviceSchema);
-const User = model('User', UserSchema);
+const Plant = model('Plant', PlantSchema);
+const Measurement = model('Measurement', MeasurementSchema);
 
 export const registerDevice: RequestHandler = async (req, res) => {
     const bindingCode = getBindingCode();
     const device = new Device({
-        _id: uuidv4(),
+        _id: new mongoose.Types.ObjectId(),
         bindingCode: bindingCode,
     });
 
@@ -37,19 +39,17 @@ export const bindDeviceToPlant: RequestHandler = async (req, res) => {
     if (!req.body.bindingCode || !req.body.plantId) {
         return res
             .status(400)
-            .json({ error: 'Binding token and plant id are required' });
+            .json({ error: 'Binding code and plant id are required' });
     }
 
-    const user = await User.findOne({ _id: res.locals.userId }, { plants: 1 });
-
-    if (user == null) {
-        logger.error(`User ${res.locals.userId} not found`);
-        return res.sendStatus(500);
-    }
-
-    const plant = user.plants.find((p) => p._id === req.body.plantId);
+    const plant = await Plant.findOne({ _id: req.body.plantId });
     if (plant == null) {
         return res.status(404).json({ error: 'Plant not found' });
+    }
+    if (plant.ownerUser != res.locals.userId) {
+        return res
+            .sendStatus(401)
+            .json({ error: 'Plant does not belong to this user' });
     }
 
     const device = await Device.findOne({ bindingCode: req.body.bindingCode });
@@ -61,11 +61,10 @@ export const bindDeviceToPlant: RequestHandler = async (req, res) => {
     if (device.isBound) {
         return res
             .status(400)
-            .json({ error: 'Device is already bound to a plant.' });
+            .json({ error: 'Device is already bound to a plant' });
     }
 
-    device.boundPlantId = plant._id;
-    device.boundUserId = user._id;
+    device.boundPlantId = req.body.plantId;
     device.isBound = true;
     await device.save();
     res.sendStatus(200);
@@ -79,24 +78,24 @@ export const genMeasurementPublishCode: RequestHandler = async (req, res) => {
     const { bindingToken } = req.body as { bindingToken: string };
 
     try {
-        const decoded = jwt.verify(
+        const decodedToken = jwt.verify(
             bindingToken,
             process.env.BINDING_JWT_SECRET || 'secret'
         ) as BindingTokenPayload;
 
-        if (decoded.tokenType !== TokenType.Binding) {
+        if (decodedToken.tokenType !== TokenType.Binding) {
             return res
                 .status(400)
                 .json({ error: 'Binding token is not valid.' });
         }
 
         const device = await Device.findOne({
-            bindingCode: decoded.bindingCode,
+            bindingCode: decodedToken.bindingCode,
         });
 
         if (device == null) {
             logger.error(
-                `Device with binding code ${decoded.bindingCode} included in token not found`
+                `Device with binding code ${decodedToken.bindingCode} included in token not found`
             );
             return res.status(500).json({ error: 'Something went wrong.' });
         }
@@ -109,7 +108,7 @@ export const genMeasurementPublishCode: RequestHandler = async (req, res) => {
 
         const token = jwt.sign(
             {
-                userId: device.boundUserId,
+                deviceId: device._id,
                 plantId: device.boundPlantId,
                 tokenType: TokenType.Measurement,
             },
@@ -124,30 +123,22 @@ export const genMeasurementPublishCode: RequestHandler = async (req, res) => {
 };
 
 export const addMeasurement: RequestHandler = async (req, res) => {
-    const userId = res.locals.userId;
+    const deviceId = res.locals.deviceId;
     const plantId = res.locals.plantId;
-    const user = await User.findOne({ _id: userId }, { plants: 1 });
 
-    if (user == null) {
-        logger.error(`User ${userId} not found`);
-        return res.status(500).json({ error: 'Something went wrong.' });
-    }
-
-    const plant = user.plants.find((p) => p._id === plantId);
-
-    if (plant == null) {
-        logger.error(`Plant ${plantId} not found`);
-        return res.status(500).json({ error: 'Something went wrong.' });
-    }
-
-    const measurement = {
-        _id: uuidv4(),
+    const measurement = new Measurement({
+        _id: new mongoose.Types.ObjectId(),
         humidity: req.body.humidity,
         temperature: req.body.temperature,
-    };
+        deviceId: deviceId,
+        plantId: plantId,
+    });
 
-    plant.measurements?.push(measurement);
-    user.save();
-
+    try {
+        await measurement.save();
+    } catch (e) {
+        logger.error(`Error saving measurement: ${e}`);
+        return res.sendStatus(500);
+    }
     res.sendStatus(200);
 };
